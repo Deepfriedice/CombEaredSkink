@@ -15,8 +15,24 @@ public class MyBot : IChessBot
     // Higher number -> better for the current player.
     private int BoardScore(Board board)
     {
-        int moveCount = board.GetLegalMoves().Length;
-        return moveCount;
+        Move[] moves = board.GetLegalMoves();
+        int ownMoveCount = moves.Length;
+        int otherMoveCount;
+
+        if (board.TrySkipTurn())
+        {
+            otherMoveCount = board.GetLegalMoves().Length;
+            board.UndoSkipTurn();
+        }
+        else
+        {
+            Move checkMove = RandomMove(moves);
+            board.MakeMove(checkMove);
+            otherMoveCount = board.GetLegalMoves().Length;
+            board.UndoMove(checkMove);
+        }
+
+        return ownMoveCount - otherMoveCount;
     }
 
     // Select a random move from a list.
