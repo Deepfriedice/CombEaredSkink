@@ -1,6 +1,6 @@
 ﻿using ChessChallenge.API;
-using System.Collections.Generic;
 using System;
+using System.Collections.Generic;
 
 public class MyBot : IChessBot
 {
@@ -28,6 +28,7 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         int bestScore = 1000;
+        MoveDisplayer displayer = new MoveDisplayer();
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in board.GetLegalMoves())
         {
@@ -41,6 +42,7 @@ public class MyBot : IChessBot
 
             // update the list of best moves
             int score = BoardScore(board);
+            displayer.Add(move, score);
             if (score == bestScore)
             {
                 bestMoves.Add(move);
@@ -53,6 +55,8 @@ public class MyBot : IChessBot
             }
             board.UndoMove(move);
         }
+
+        displayer.Print();
 
         // play a random move from the best moves
         return RandomMove(bestMoves);
