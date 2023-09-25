@@ -31,10 +31,9 @@ class MoveDisplayer
     {
         int[] scores = movesByScore.Keys.ToArray();
         Array.Sort(scores);
-        Console.WriteLine();
         foreach (int score in scores)
         {
-            Console.Write("{0,3} - ", score);
+            Console.Write("{0,4} - ", score);
             foreach (Move move in movesByScore[score])
             {
                 string moveName = move.ToString().Substring(7,4);

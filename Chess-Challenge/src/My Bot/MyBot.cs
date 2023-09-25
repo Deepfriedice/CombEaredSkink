@@ -4,13 +4,9 @@ using System.Collections.Generic;
 
 public class MyBot : IChessBot
 {
-    private readonly Random rng;
+    private readonly Random rng = new();
     private const int UpperBound = 200;
-
-    public MyBot()
-    {
-        rng = new();
-    }
+    private int searchDepth = 2;
 
     // Try to evaluate how good a position is.
     // Higher number -> better for the current player.
@@ -62,6 +58,12 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
+        if (board.PlyCount < 2)  // at game start
+        {
+            searchDepth = 2;
+        }
+        Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
+
         int bestScore = UpperBound;
         MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
@@ -76,7 +78,7 @@ public class MyBot : IChessBot
             }
 
             // update the list of best moves
-            int score = RecursiveBoardScore(board, 2);
+            int score = RecursiveBoardScore(board, searchDepth);
             displayer.Add(move, score);  //#DEBUG
             if (score == bestScore)
             {
@@ -93,6 +95,17 @@ public class MyBot : IChessBot
         }
 
         displayer.Print();  //#DEBUG
+        if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 0)
+        {
+            searchDepth--;
+            Console.WriteLine("decreasing search depth");  //#DEBUG
+        }
+        else if (timer.MillisecondsElapsedThisTurn < 100)
+        {
+            searchDepth++;
+            Console.WriteLine("increasing search depth");  //#DEBUG
+        }
+        Console.WriteLine();  //#DEBUG
 
         // play a random move from the best moves
         return RandomMove(bestMoves);
