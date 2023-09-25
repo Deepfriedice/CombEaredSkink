@@ -5,6 +5,7 @@ using System.Collections.Generic;
 public class MyBot : IChessBot
 {
     private readonly Random rng;
+    private const int UpperBound = 200;
 
     public MyBot()
     {
@@ -17,22 +18,11 @@ public class MyBot : IChessBot
     {
         Move[] moves = board.GetLegalMoves();
         int ownMoveCount = moves.Length;
-        int otherMoveCount;
-
-        if (board.TrySkipTurn())
-        {
-            otherMoveCount = board.GetLegalMoves().Length;
-            board.UndoSkipTurn();
-        }
-        else
-        {
-            Move checkMove = RandomMove(moves);
-            board.MakeMove(checkMove);
-            otherMoveCount = board.GetLegalMoves().Length;
-            board.UndoMove(checkMove);
-        }
-
+        board.ForceSkipTurn();
+        int otherMoveCount = board.GetLegalMoves().Length;
+        board.UndoSkipTurn();
         return ownMoveCount - otherMoveCount;
+        // note that board.IsInCheck is forced to false
     }
 
     // Select a random move from a list.
@@ -43,7 +33,7 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
-        int bestScore = 1000;
+        int bestScore = UpperBound;
         MoveDisplayer displayer = new MoveDisplayer();
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in board.GetLegalMoves())
@@ -53,6 +43,7 @@ public class MyBot : IChessBot
             // play a checkmate move immediately
             if (board.IsInCheckmate())
             {
+                board.UndoMove(move);  // this is not currently required
                 return move;
             }
 
