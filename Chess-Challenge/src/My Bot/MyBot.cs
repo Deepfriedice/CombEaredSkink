@@ -1,4 +1,4 @@
-using ChessChallenge.API;
+﻿using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -72,6 +72,7 @@ public class MyBot : IChessBot
         {
             searchDepth = 2;
         }
+        bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
         int bestScore = UpperBound;
@@ -105,15 +106,18 @@ public class MyBot : IChessBot
         }
 
         displayer.Print();  //#DEBUG
-        if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 0)
+        if (!wasInCheck)  // don't update the search depth in special cases
         {
-            searchDepth--;
-            Console.WriteLine("decreasing search depth");  //#DEBUG
-        }
-        else if (timer.MillisecondsElapsedThisTurn < 100)
-        {
-            searchDepth++;
-            Console.WriteLine("increasing search depth");  //#DEBUG
+            if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 0)
+            {
+                searchDepth--;
+                Console.WriteLine("decreasing search depth");  //#DEBUG
+            }
+            else if (timer.MillisecondsElapsedThisTurn < 100)
+            {
+                searchDepth++;
+                Console.WriteLine("increasing search depth");  //#DEBUG
+            }
         }
         Console.WriteLine();  //#DEBUG
 
