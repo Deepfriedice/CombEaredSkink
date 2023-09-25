@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class MyBot : IChessBot
 {
     private readonly Random rng = new();
-    private const int UpperBound = 200;
+    private const int UpperBound = 1000;
     private int searchDepth = 2;
 
     // Try to evaluate how good a position is.
@@ -26,7 +26,7 @@ public class MyBot : IChessBot
         // avoid checkmate and draws
         if (board.IsInCheckmate())
         {
-            return -UpperBound;
+            return board.PlyCount - UpperBound;
         }
         if (board.IsDraw())
         {
@@ -47,7 +47,7 @@ public class MyBot : IChessBot
             if (board.IsInCheckmate())
             {
                 board.UndoMove(move);
-                return UpperBound;
+                return UpperBound - board.PlyCount - 1;
             }
 
             // update the list of best moves

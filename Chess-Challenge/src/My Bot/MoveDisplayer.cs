@@ -33,7 +33,7 @@ class MoveDisplayer
         Array.Sort(scores);
         foreach (int score in scores)
         {
-            Console.Write("{0,4} - ", score);
+            Console.Write("{0,5} - ", score);
             foreach (Move move in movesByScore[score])
             {
                 string moveName = move.ToString().Substring(7,4);
