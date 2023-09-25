@@ -23,6 +23,16 @@ public class MyBot : IChessBot
 
     private int RecursiveBoardScore(Board board, int depth)
     {
+        // avoid checkmate and draws
+        if (board.IsInCheckmate())
+        {
+            return -UpperBound;
+        }
+        if (board.IsDraw())
+        {
+            return 0;
+        }
+
         if (depth == 0)
         {
             return BoardScore(board);
