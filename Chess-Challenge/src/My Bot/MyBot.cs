@@ -1,4 +1,4 @@
-﻿using ChessChallenge.API;
+using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -25,6 +25,35 @@ public class MyBot : IChessBot
         // note that board.IsInCheck is forced to false
     }
 
+    private int RecursiveBoardScore(Board board, int depth)
+    {
+        if (depth == 0)
+        {
+            return BoardScore(board);
+        }
+
+        int score = -UpperBound;
+        foreach (Move move in board.GetLegalMoves())
+        {
+            board.MakeMove(move);
+
+            // play a checkmate move immediately
+            if (board.IsInCheckmate())
+            {
+                board.UndoMove(move);
+                return UpperBound;
+            }
+
+            // update the list of best moves
+            int opponentScore = RecursiveBoardScore(board, depth-1);
+            score = Math.Max(score, -opponentScore);
+            board.UndoMove(move);
+        }
+
+        // play a random move from the best moves
+        return score;
+    }
+
     // Select a random move from a list.
     private Move RandomMove(IList<Move> moves)
     {
@@ -43,12 +72,11 @@ public class MyBot : IChessBot
             // play a checkmate move immediately
             if (board.IsInCheckmate())
             {
-                board.UndoMove(move);  // this is not currently required
-                return move;
+                return move;  // don't need to undo the move
             }
 
             // update the list of best moves
-            int score = BoardScore(board);
+            int score = RecursiveBoardScore(board, 2);
             displayer.Add(move, score);  //#DEBUG
             if (score == bestScore)
             {
