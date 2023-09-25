@@ -34,7 +34,7 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         int bestScore = UpperBound;
-        MoveDisplayer displayer = new MoveDisplayer();
+        MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in board.GetLegalMoves())
         {
@@ -49,7 +49,7 @@ public class MyBot : IChessBot
 
             // update the list of best moves
             int score = BoardScore(board);
-            displayer.Add(move, score);
+            displayer.Add(move, score);  //#DEBUG
             if (score == bestScore)
             {
                 bestMoves.Add(move);
@@ -60,10 +60,11 @@ public class MyBot : IChessBot
                 bestMoves.Clear();
                 bestMoves.Add(move);
             }
+
             board.UndoMove(move);
         }
 
-        displayer.Print();
+        displayer.Print();  //#DEBUG
 
         // play a random move from the best moves
         return RandomMove(bestMoves);
