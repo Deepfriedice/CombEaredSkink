@@ -75,7 +75,7 @@ public class MyBot : IChessBot
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
-        int bestScore = UpperBound;
+        int bestScore = -UpperBound;
         MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in board.GetLegalMoves())
@@ -85,19 +85,20 @@ public class MyBot : IChessBot
             // play a checkmate move immediately
             if (board.IsInCheckmate())
             {
+                Console.WriteLine("found checkmate: {0}", MoveDisplayer.MoveName(move));  //#DEBUG
                 return move;  // don't need to undo the move
             }
 
             // update the list of best moves
-            int score = RecursiveBoardScore(board, searchDepth);
-            displayer.Add(move, score);  //#DEBUG
-            if (score == bestScore)
+            int moveScore = -RecursiveBoardScore(board, searchDepth);
+            displayer.Add(move, moveScore);  //#DEBUG
+            if (moveScore == bestScore)
             {
                 bestMoves.Add(move);
             }
-            else if (score < bestScore)
+            else if (moveScore > bestScore)
             {
-                bestScore = score;
+                bestScore = moveScore;
                 bestMoves.Clear();
                 bestMoves.Add(move);
             }

@@ -27,17 +27,22 @@ class MoveDisplayer
         movesByScore.Clear();
     }
 
+    public static string MoveName(Move move)
+    {
+        return move.ToString().Substring(7,4);
+    }
+
     public void Print()
     {
         int[] scores = movesByScore.Keys.ToArray();
         Array.Sort(scores);
+        Array.Reverse(scores);
         foreach (int score in scores)
         {
             Console.Write("{0,5} - ", score);
             foreach (Move move in movesByScore[score])
             {
-                string moveName = move.ToString().Substring(7,4);
-                Console.Write("{0} ", moveName);
+                Console.Write("{0} ", MoveName(move));
             }
             Console.WriteLine();
         }
