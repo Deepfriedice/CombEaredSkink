@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class MyBot : IChessBot
 {
     private readonly Random rng = new();
-    private const int UpperBound = 1000;
+    private const int MaxScore = 1000;
     private int searchDepth = 2;
 
     // Try to evaluate how good a position is.
@@ -21,24 +21,20 @@ public class MyBot : IChessBot
         // note that board.IsInCheck is forced to false
     }
 
-    private int RecursiveBoardScore(Board board, int depth)
+    private int RecursiveBoardScore(Board board, int depth, int lowerBound, int upperBound)
     {
         // avoid checkmate and draws
         if (board.IsInCheckmate())
-        {
-            return board.PlyCount - UpperBound;
-        }
+            return board.PlyCount - MaxScore;
+
         if (board.IsDraw())
-        {
             return 0;
-        }
 
         if (depth == 0)
-        {
             return BoardScore(board);
-        }
 
-        int score = -UpperBound;
+        // int bestScore = lowerBound;
+        int bestScore = -MaxScore;
         foreach (Move move in board.GetLegalMoves())
         {
             board.MakeMove(move);
@@ -47,17 +43,26 @@ public class MyBot : IChessBot
             if (board.IsInCheckmate())
             {
                 board.UndoMove(move);
-                return UpperBound - board.PlyCount - 1;
+                return MaxScore - board.PlyCount - 1;
             }
 
-            // update the list of best moves
-            int opponentScore = RecursiveBoardScore(board, depth-1);
-            score = Math.Max(score, -opponentScore);
+            // search recursively
+            // the quality of the move to us is how bad it makes the opponent's position
+            int moveScore = -RecursiveBoardScore(board, depth-1, -upperBound,  -Math.Max(bestScore, lowerBound));
             board.UndoMove(move);
+
+            // beta cut off
+            if (moveScore > upperBound)
+            {
+                // stop evaluating this position, as it's
+                // "too good" for the opponent to allow us to reach
+                return MaxScore;
+            }
+
+            bestScore = Math.Max(bestScore, moveScore);
         }
 
-        // play a random move from the best moves
-        return score;
+        return bestScore;
     }
 
     // Select a random move from a list.
@@ -75,7 +80,7 @@ public class MyBot : IChessBot
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
-        int bestScore = -UpperBound;
+        int bestScore = -MaxScore;
         MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in board.GetLegalMoves())
@@ -89,9 +94,13 @@ public class MyBot : IChessBot
                 return move;  // don't need to undo the move
             }
 
+            // evaluate the position after this move
+            int moveScore = -RecursiveBoardScore(board, searchDepth, -MaxScore, -bestScore);
+
+            if (moveScore != -MaxScore)  //#DEBUG
+                displayer.Add(move, moveScore);  //#DEBUG
+
             // update the list of best moves
-            int moveScore = -RecursiveBoardScore(board, searchDepth);
-            displayer.Add(move, moveScore);  //#DEBUG
             if (moveScore == bestScore)
             {
                 bestMoves.Add(move);
