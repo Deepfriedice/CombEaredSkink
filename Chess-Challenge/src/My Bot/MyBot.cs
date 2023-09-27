@@ -6,7 +6,7 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
-    private int searchDepth = 2;
+    private int searchDepth = 4;
 
     // Try to evaluate how good a position is.
     // Higher number -> better for the current player.
@@ -73,10 +73,6 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
-        if (board.PlyCount < 2)  // at game start
-        {
-            searchDepth = 2;
-        }
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
@@ -95,7 +91,7 @@ public class MyBot : IChessBot
             }
 
             // evaluate the position after this move
-            int moveScore = -RecursiveBoardScore(board, searchDepth, -MaxScore, -bestScore);
+            int moveScore = -RecursiveBoardScore(board, searchDepth-1, -MaxScore, -bestScore);
 
             if (moveScore != -MaxScore)  //#DEBUG
                 displayer.Add(move, moveScore);  //#DEBUG
@@ -118,7 +114,7 @@ public class MyBot : IChessBot
         displayer.Print();  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {
-            if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 0)
+            if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 1)
             {
                 searchDepth--;
                 Console.WriteLine("decreasing search depth");  //#DEBUG
