@@ -7,11 +7,13 @@ public class MyBot : IChessBot
     private readonly Random rng = new();
     private const int MaxScore = 1000;
     private int searchDepth = 4;
+    private int evalCount = 0;  //#DEBUG
 
     // Try to evaluate how good a position is.
     // Higher number -> better for the current player.
     private int BoardScore(Board board)
     {
+        evalCount++;  //#DEBUG
         Move[] moves = board.GetLegalMoves();
         int ownMoveCount = moves.Length;
         board.ForceSkipTurn();
@@ -73,6 +75,7 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
+        evalCount = 0;  //#DEBUG
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
@@ -112,6 +115,7 @@ public class MyBot : IChessBot
         }
 
         displayer.Print();  //#DEBUG
+        Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {
             if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 1)
