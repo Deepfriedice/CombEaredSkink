@@ -23,7 +23,7 @@ public class MyBot : IChessBot
         // note that board.IsInCheck is forced to false
     }
 
-    private int RecursiveBoardScore(Board board, int depth, int lowerBound, int upperBound)
+    internal int RecursiveBoardScore(Board board, int depth, int lowerBound, int upperBound)
     {
         // avoid checkmate and draws
         if (board.IsInCheckmate())
