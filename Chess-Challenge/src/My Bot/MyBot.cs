@@ -6,16 +6,18 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
+    private const int TimeConsumption = 16;  // faction of the clock to use each turn
+    private const int TimeThreshold = 16;  // how aggressively to increase the search depth
     private int searchDepth = 6;
     internal int evalCount = 0;  //#DEBUG
 
     // How long do we have to think about our move?
     private int ThinkingTimeGoal(Timer timer)
     {
-        int evenTime = timer.GameStartTimeMilliseconds / 32;
-        int expTime = timer.MillisecondsRemaining / 16;
-        // note that increment is ignored here - it will be included in next expTime
-        return Math.Max(Math.Min(evenTime, expTime), 1);
+        int remaining = timer.MillisecondsRemaining / TimeConsumption;
+        int evenSplit = timer.GameStartTimeMilliseconds / (2 * TimeConsumption);
+        int goal = Math.Min(remaining, evenSplit) + timer.IncrementMilliseconds;
+        return Math.Min(goal, timer.MillisecondsRemaining / 2) + 1;
     }
 
     // Try to evaluate how good a position is.
@@ -153,7 +155,7 @@ public class MyBot : IChessBot
                 searchDepth--;
                 Console.WriteLine("decreasing search depth");  //#DEBUG
             }
-            else if (timer.MillisecondsElapsedThisTurn < thinkingTimeGoal / 16)
+            else if (timer.MillisecondsElapsedThisTurn < thinkingTimeGoal / TimeThreshold)
             {
                 searchDepth++;
                 Console.WriteLine("increasing search depth");  //#DEBUG
