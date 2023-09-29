@@ -7,7 +7,7 @@ public class MyBot : IChessBot
     private readonly Random rng = new();
     private const int MaxScore = 1000;
     private int searchDepth = 4;
-    private int evalCount = 0;  //#DEBUG
+    internal int evalCount = 0;  //#DEBUG
 
     // Try to evaluate how good a position is.
     // Higher number -> better for the current player.
