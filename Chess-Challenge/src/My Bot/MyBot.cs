@@ -6,7 +6,7 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
-    private int searchDepth = 5;
+    private int searchDepth = 6;
     private readonly int minSortDepth = 2;
     internal int evalCount = 0;  //#DEBUG
 
