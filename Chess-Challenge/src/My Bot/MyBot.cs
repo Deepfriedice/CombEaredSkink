@@ -1,4 +1,4 @@
-using ChessChallenge.API;
+﻿using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -9,6 +9,15 @@ public class MyBot : IChessBot
     private int searchDepth = 5;
     private readonly int minSortDepth = 2;
     internal int evalCount = 0;  //#DEBUG
+
+    // How long do we have to think about our move?
+    private int ThinkingTimeGoal(Timer timer)
+    {
+        int evenTime = timer.GameStartTimeMilliseconds / 32;
+        int expTime = timer.MillisecondsRemaining / 16;
+        // note that increment is ignored here - it will be included in next expTime
+        return Math.Max(Math.Min(evenTime, expTime), 1);
+    }
 
     // Try to evaluate how good a position is.
     // Higher number -> better for the current player.
@@ -95,6 +104,7 @@ public class MyBot : IChessBot
 
     public Move Think(Board board, Timer timer)
     {
+        int thinkingTimeGoal = ThinkingTimeGoal(timer);
         evalCount = 0;  //#DEBUG
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
@@ -136,14 +146,15 @@ public class MyBot : IChessBot
 
         displayer.Print();  //#DEBUG
         Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
+        Console.WriteLine("thinking time: {0:D}/{1:D}ms", timer.MillisecondsElapsedThisTurn, thinkingTimeGoal);  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {
-            if (timer.MillisecondsElapsedThisTurn > 2000 & searchDepth > 1)
+            if (timer.MillisecondsElapsedThisTurn > thinkingTimeGoal && searchDepth > 1)
             {
                 searchDepth--;
                 Console.WriteLine("decreasing search depth");  //#DEBUG
             }
-            else if (timer.MillisecondsElapsedThisTurn < 100)
+            else if (timer.MillisecondsElapsedThisTurn < thinkingTimeGoal / 16)
             {
                 searchDepth++;
                 Console.WriteLine("increasing search depth");  //#DEBUG
