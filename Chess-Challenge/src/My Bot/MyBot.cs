@@ -1,4 +1,4 @@
-﻿using ChessChallenge.API;
+using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -6,7 +6,7 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
-    private int searchDepth = 4;
+    private int searchDepth = 5;
     private readonly int minSortDepth = 2;
     internal int evalCount = 0;  //#DEBUG
 
