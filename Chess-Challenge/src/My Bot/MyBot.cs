@@ -1,4 +1,4 @@
-using ChessChallenge.API;
+﻿using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -8,7 +8,8 @@ public class MyBot : IChessBot
     private const int MaxScore = 1000;
     private const int TimeConsumption = 16;  // faction of the clock to use each turn
     private const int TimeThreshold = 16;  // how aggressively to increase the search depth
-    private int searchDepth = 6;
+    private const double InitialSearchScale = 1.8;  // coefficient for initial searchDepth value
+    private int searchDepth = 0;
     internal int evalCount = 0;  //#DEBUG
 
     // How long do we have to think about our move?
@@ -107,6 +108,11 @@ public class MyBot : IChessBot
     {
         int thinkingTimeGoal = ThinkingTimeGoal(timer);
         evalCount = 0;  //#DEBUG
+
+        // set initial search depth based on the game length
+        if (searchDepth == 0)
+            searchDepth = (int) (InitialSearchScale * Math.Log(timer.GameStartTimeMilliseconds, TimeThreshold));
+
         bool wasInCheck = board.IsInCheck();
         Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
 
