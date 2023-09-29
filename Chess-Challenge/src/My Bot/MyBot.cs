@@ -1,4 +1,4 @@
-﻿using ChessChallenge.API;
+using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -6,7 +6,7 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
-    private const int TimeConsumption = 16;  // faction of the clock to use each turn
+    private const int TimeConsumption = 12;  // faction of the clock to use each turn
     private const int TimeThreshold = 16;  // how aggressively to increase the search depth
     private const double InitialSearchScale = 1.8;  // coefficient for initial searchDepth value
     private int searchDepth = 0;
