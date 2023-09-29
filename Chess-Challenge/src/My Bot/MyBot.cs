@@ -7,6 +7,7 @@ public class MyBot : IChessBot
     private readonly Random rng = new();
     private const int MaxScore = 1000;
     private int searchDepth = 4;
+    private readonly int minSortDepth = 2;
     internal int evalCount = 0;  //#DEBUG
 
     // Try to evaluate how good a position is.
@@ -23,6 +24,25 @@ public class MyBot : IChessBot
         // note that board.IsInCheck is forced to false
     }
 
+    // Produce an array of moves sorted by estimate, probably-better moves first.
+    private Move[] SortedMoves(Board board, int depth)
+    {
+        Move[] moves = board.GetLegalMoves();
+        if (depth >= minSortDepth)
+        {
+            int[] moveScores = new int[moves.Length];
+            for (int i = 0; i < moves.Length; i++)
+            {
+                Move move = moves[i];
+                board.MakeMove(move);
+                moveScores[i] = BoardScore(board);
+                board.UndoMove(move);
+            }
+            Array.Sort(moveScores, moves);
+        }
+        return moves;
+    }
+
     internal int RecursiveBoardScore(Board board, int depth, int lowerBound, int upperBound)
     {
         // avoid checkmate and draws
@@ -37,7 +57,7 @@ public class MyBot : IChessBot
 
         // int bestScore = lowerBound;
         int bestScore = -MaxScore;
-        foreach (Move move in board.GetLegalMoves())
+        foreach (Move move in SortedMoves(board, depth))
         {
             board.MakeMove(move);
 
@@ -82,7 +102,7 @@ public class MyBot : IChessBot
         int bestScore = -MaxScore;
         MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
-        foreach (Move move in board.GetLegalMoves())
+        foreach (Move move in SortedMoves(board, searchDepth))
         {
             board.MakeMove(move);
 

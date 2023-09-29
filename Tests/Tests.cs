@@ -31,8 +31,8 @@ namespace MyBotTests
         }
 
         [TestMethod]
-        [DataRow(48336, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
-        [DataRow(122308, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
+        [DataRow(6763, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
+        [DataRow(12911, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
         public void RecursiveBoardScore_CountEvaluations(int expected, string position)
         {
             var bot = new MyBot();
