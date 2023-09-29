@@ -13,20 +13,15 @@ public class MyBot : IChessBot
     internal int evalCount = 0;  //#DEBUG
     internal int cacheHits = 0;  //#DEBUG
     internal int cacheMisses = 0;  //#DEBUG
-    internal int cacheEvictions = 0;  //#DEBUG
 
-    private class CacheItem
+    // idea taken from:
+    // https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Search/TranspositionTable.cs
+    internal struct CacheItem
     {
-        public CacheItem? prev;
-        public CacheItem? next;
         public ulong key;
         public int score;
     }
-
-    private Dictionary<ulong, CacheItem> evalCache = new Dictionary<ulong, CacheItem>();
-    private CacheItem? evalCacheHead;  // head is first
-    private CacheItem? evalCacheTail;
-    private const int EvalCacheMaxLength = 1<<24;
+    internal CacheItem[] evalCache = new CacheItem[1<<22];
 
 
 
@@ -55,54 +50,20 @@ public class MyBot : IChessBot
 
     private int CachedBoardScore(Board board)
     {
-        ulong key = board.ZobristKey;
-        CacheItem? cacheItem;
-
-        if (evalCache.TryGetValue(key, out cacheItem))
+        ulong key = board.ZobristKey % (ulong) evalCache.Length;
+        if (evalCache[key].key == board.ZobristKey)
         {
             cacheHits++;  //#DEBUG
-            // linked list bullshit - move cacheItem to the front of the list
-            if (evalCacheHead != cacheItem)
-            {
-                if (evalCacheTail == cacheItem)
-                    evalCacheTail = cacheItem.prev;
-                else
-                    cacheItem.next.prev = cacheItem.prev;
-                cacheItem.prev.next = cacheItem.next;
-                cacheItem.prev = null;
-                cacheItem.next = evalCacheHead;
-                if (evalCacheHead != null)
-                    evalCacheHead.prev = cacheItem;
-                evalCacheHead = cacheItem;
-            }
+            return evalCache[key].score;
         }
         else
         {
             cacheMisses++;  //#DEBUG
-            cacheItem = new CacheItem();
-            cacheItem.score = BoardScore(board);
-            cacheItem.key = key;
-            evalCache[key] = cacheItem;
-            cacheItem.prev = null;
-            cacheItem.next = evalCacheHead;
-            if (evalCacheHead != null)
-                evalCacheHead.prev = cacheItem;
-            evalCacheHead = cacheItem;
-            if (evalCacheTail == null)
-            {
-                evalCacheTail = cacheItem;
-            }
+            int score = BoardScore(board);
+            evalCache[key].key = board.ZobristKey;
+            evalCache[key].score = score;
+            return score;
         }
-
-        if (evalCache.Count > EvalCacheMaxLength)
-        {
-            evalCache.Remove(evalCacheTail.key);
-            evalCacheTail = evalCacheTail.prev;
-            evalCacheTail.next = null;
-            cacheEvictions++;
-        }
-
-        return cacheItem.score;
     }
 
     // Produce an array of moves sorted by estimate, probably-better moves first.
@@ -180,7 +141,6 @@ public class MyBot : IChessBot
         evalCount = 0;  //#DEBUG
         cacheHits = 0;  //#DEBUG
         cacheMisses = 0;  //#DEBUG
-        cacheEvictions = 0;  //#DEBUG
 
         // set initial search depth based on the game length
         if (searchDepth == 0)
@@ -226,8 +186,7 @@ public class MyBot : IChessBot
 
         displayer.Print();  //#DEBUG
         Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
-        Console.WriteLine("cache hits/misses/evictions: {0:D}/{1:D}/{2:D}", cacheHits, cacheMisses, cacheEvictions);  //#DEBUG
-        Console.WriteLine("cache size: {0:D}", evalCache.Count);  //#DEBUG
+        Console.WriteLine("cached positions hits: {0:D}k", cacheHits/1000);  //#DEBUG
         Console.WriteLine("thinking time: {0:D}/{1:D}ms", timer.MillisecondsElapsedThisTurn, thinkingTimeGoal);  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {

@@ -4,6 +4,7 @@ using ChessChallenge.API;
 using ChessChallenge.Application;
 using System.ComponentModel;
 using System;
+using System.Runtime.InteropServices;
 
 // Testing idea copied from https://github.com/KennethOnGitHub/KnightToE4F
 namespace MyBotTests
@@ -31,8 +32,8 @@ namespace MyBotTests
         }
 
         [TestMethod]
-        [DataRow(312264, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
-        [DataRow(616872, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
+        [DataRow(312877, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
+        [DataRow(621500, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
         public void RecursiveBoardScore_CountEvaluations(int expected, string position)
         {
             var bot = new MyBot();
@@ -42,6 +43,18 @@ namespace MyBotTests
             Console.WriteLine("Expected eval count: {0}", expected);
             Console.WriteLine("Actual eval count: {0}", bot.evalCount);
             Assert.AreEqual(bot.evalCount, expected);
+        }
+
+        // the rules require the transposition table to be less than 256MB
+        [TestMethod]
+        public void evalCacheSize()
+        {
+            var bot = new MyBot();
+            int itemSize = Marshal.SizeOf<MyBot.CacheItem>();
+            int tableLength = bot.evalCache.Length;
+            int tableSize = itemSize * tableLength;
+            Console.WriteLine("table size: {0}MB", tableSize / (1<<20));
+            Assert.IsTrue(tableSize <= (1<<28));
         }
 
     }
