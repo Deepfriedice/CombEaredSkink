@@ -1,4 +1,4 @@
-﻿using ChessChallenge.API;
+using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 
@@ -68,21 +68,18 @@ public class MyBot : IChessBot
     }
 
     // Produce an array of moves sorted by estimate, probably-better moves first.
-    private Move[] SortedMoves(Board board, int depth)
+    private Move[] SortedMoves(Board board)
     {
         Move[] moves = board.GetLegalMoves();
-        if (depth >= 2)
+        int[] moveScores = new int[moves.Length];
+        for (int i = 0; i < moves.Length; i++)
         {
-            int[] moveScores = new int[moves.Length];
-            for (int i = 0; i < moves.Length; i++)
-            {
-                Move move = moves[i];
-                board.MakeMove(move);
-                moveScores[i] = CachedBoardScore(board);
-                board.UndoMove(move);
-            }
-            Array.Sort(moveScores, moves);
+            Move move = moves[i];
+            board.MakeMove(move);
+            moveScores[i] = CachedBoardScore(board);
+            board.UndoMove(move);
         }
+        Array.Sort(moveScores, moves);
         return moves;
     }
 
@@ -95,12 +92,11 @@ public class MyBot : IChessBot
         if (board.IsDraw())
             return 0;
 
-        if (depth == 0)
+        if (depth <= 0 && !board.IsInCheck())
             return CachedBoardScore(board);
 
-        // int bestScore = lowerBound;
         int bestScore = -MaxScore;
-        foreach (Move move in SortedMoves(board, depth))
+        foreach (Move move in SortedMoves(board))
         {
             board.MakeMove(move);
 
@@ -141,7 +137,7 @@ public class MyBot : IChessBot
         displayer.Clear();  //#DEBUG
         int bestScore = -MaxScore;
         List<Move> bestMoves = new List<Move>();
-        foreach (Move move in SortedMoves(board, depth))
+        foreach (Move move in SortedMoves(board))
         {
             board.MakeMove(move);
 
