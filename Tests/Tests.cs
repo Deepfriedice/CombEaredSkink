@@ -39,8 +39,8 @@ namespace MyBotTests
 
         // test the number of evaluations required by search
         [TestMethod]
-        [DataRow(6, 850502, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
-        [DataRow(6, 2062651, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
+        [DataRow(6, 845677, "r1b1k2r/ppp3pp/2n5/1Bq1pp2/8/P1P2N2/1P3PPP/R1BQ1RK1 b kq - 0 11")]
+        [DataRow(6, 2010528, "r4rk1/pp3ppb/2p4p/b3q3/4P3/2N2QPB/P6P/4RR1K w - - 2 25")]
         public void Search_CountEvaluations(int depth, int expected, string position)
         {
             var bot = new MyBot();

@@ -23,7 +23,7 @@ public class MyBot : IChessBot
         public ulong key;
         public int score;
     }
-    internal CacheItem[] evalCache = new CacheItem[1<<22];
+    internal CacheItem[] evalCache = new CacheItem[1<<24];  // table size: 256MB
 
     // How long do we have to think about our move?
     private int ThinkingTimeGoal(Timer timer)
