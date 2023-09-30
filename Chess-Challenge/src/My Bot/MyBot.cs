@@ -1,6 +1,7 @@
-using ChessChallenge.API;
+﻿using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class MyBot : IChessBot
 {
@@ -71,14 +72,12 @@ public class MyBot : IChessBot
     private Move[] SortedMoves(Board board)
     {
         Move[] moves = board.GetLegalMoves();
-        int[] moveScores = new int[moves.Length];
-        for (int i = 0; i < moves.Length; i++)
-        {
-            Move move = moves[i];
+        int[] moveScores = moves.Select(move => {
             board.MakeMove(move);
-            moveScores[i] = CachedBoardScore(board);
+            int score = CachedBoardScore(board);
             board.UndoMove(move);
-        }
+            return score;
+        }).ToArray();
         Array.Sort(moveScores, moves);
         return moves;
     }
