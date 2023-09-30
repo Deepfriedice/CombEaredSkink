@@ -11,10 +11,6 @@ public class MyBot : IChessBot
     private const int TimeThreshold = 16;  // how aggressively to increase the search depth
     private const double InitialSearchScale = 1.6;  // coefficient for initial searchDepth value
     private int searchDepth = 0;
-    private MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
-    internal int evalCount = 0;  //#DEBUG
-    internal int cacheHits = 0;  //#DEBUG
-    internal int cacheMisses = 0;  //#DEBUG
 
     // idea taken from:
     // https://github.com/SebLague/Chess-Coding-Adventure/blob/Chess-V2-UCI/Chess-Coding-Adventure/src/Core/Search/TranspositionTable.cs
@@ -38,7 +34,6 @@ public class MyBot : IChessBot
     // Higher number -> better for the current player.
     private int BoardScore(Board board)
     {
-        evalCount++;  //#DEBUG
         Move[] moves = board.GetLegalMoves();
         int ownMoveCount = moves.Length;
         board.ForceSkipTurn();
@@ -53,18 +48,11 @@ public class MyBot : IChessBot
     {
         ulong key = board.ZobristKey % (ulong) evalCache.Length;
         if (evalCache[key].key == board.ZobristKey)
-        {
-            cacheHits++;  //#DEBUG
             return evalCache[key].score;
-        }
-        else
-        {
-            cacheMisses++;  //#DEBUG
-            int score = BoardScore(board);
-            evalCache[key].key = board.ZobristKey;
-            evalCache[key].score = score;
-            return score;
-        }
+        int score = BoardScore(board);
+        evalCache[key].key = board.ZobristKey;
+        evalCache[key].score = score;
+        return score;
     }
 
     // Produce an array of moves sorted by estimate, probably-better moves first.
@@ -134,7 +122,6 @@ public class MyBot : IChessBot
     // Top-level search function, returns a list of best moves.
     internal List<Move> FindBestMoves(Board board, int depth)
     {
-        displayer.Clear();  //#DEBUG
         int bestScore = -MaxScore;
         List<Move> bestMoves = new List<Move>();
         foreach (Move move in SortedMoves(board))
@@ -144,7 +131,6 @@ public class MyBot : IChessBot
             // play a checkmate move immediately
             if (board.IsInCheckmate())
             {
-                Console.WriteLine("found checkmate: {0}", MoveDisplayer.MoveName(move));  //#DEBUG
                 bestMoves.Clear();
                 bestMoves.Add(move);
                 return bestMoves;
@@ -153,9 +139,6 @@ public class MyBot : IChessBot
 
             // evaluate the position after this move
             int moveScore = -Search(board, depth-1, -MaxScore, -bestScore);
-
-            if (moveScore != -MaxScore)  //#DEBUG
-                displayer.Add(move, moveScore);  //#DEBUG
 
             // update the list of best moves
             if (moveScore == bestScore)
@@ -172,7 +155,6 @@ public class MyBot : IChessBot
             board.UndoMove(move);
         }
 
-        displayer.Print();  //#DEBUG
         return bestMoves;
     }
 
@@ -180,9 +162,6 @@ public class MyBot : IChessBot
     public Move Think(Board board, Timer timer)
     {
         int thinkingTimeGoal = ThinkingTimeGoal(timer);
-        evalCount = 0;  //#DEBUG
-        cacheHits = 0;  //#DEBUG
-        cacheMisses = 0;  //#DEBUG
 
         // set initial search depth based on the game length
         if (searchDepth == 0)
@@ -190,30 +169,17 @@ public class MyBot : IChessBot
 
         bool wasInCheck = board.IsInCheck();
 
-        Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
         List<Move> bestMoves = FindBestMoves(board, searchDepth);
 
-        Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
-        Console.WriteLine("cached positions hits: {0:D}k", cacheHits/1000);  //#DEBUG
-        Console.WriteLine("thinking time: {0:D}/{1:D}ms", timer.MillisecondsElapsedThisTurn, thinkingTimeGoal);  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {
             if (timer.MillisecondsElapsedThisTurn > thinkingTimeGoal && searchDepth > 1)
-            {
                 searchDepth--;
-                Console.WriteLine("decreasing search depth");  //#DEBUG
-            }
             else if (timer.MillisecondsElapsedThisTurn < thinkingTimeGoal / TimeThreshold)
-            {
                 searchDepth++;
-                Console.WriteLine("increasing search depth");  //#DEBUG
-            }
         }
 
         // play a random move from the best moves
-        Move choice = RandomMove(bestMoves);
-        Console.WriteLine("picked: {0}", MoveDisplayer.MoveName(choice));  //#DEBUG
-        Console.WriteLine();  //#DEBUG
-        return choice;
+        return RandomMove(bestMoves);
     }
 }
