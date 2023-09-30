@@ -57,5 +57,20 @@ namespace MyBotTests
             Assert.IsTrue(tableSize <= (1<<28));
         }
 
+        [TestMethod]
+        public void FindBestMoves_Blunder()
+        {
+            var bot = new MyBot();
+            string position = "r1bqkb1r/pppppppp/2n2n2/8/8/N3P3/PPPP1PPP/R1BQKBNR w KQkq - 3 3";
+            Board board = Board.CreateBoardFromFEN(position);
+            Console.WriteLine(board.CreateDiagram());
+            List<Move> moves = bot.FindBestMoves(board, 5);
+            string[] moveNames = moves.Select(m => MoveDisplayer.MoveName(m)).ToArray();
+            Array.Sort(moveNames);
+            Console.WriteLine("Best moves: {0}", moveNames);
+            Assert.IsFalse(moveNames.Contains("d1h5"));  // d1h5 is a massive blunder
+            Assert.IsFalse(moveNames.Contains("d1g4"));  // d1g4 is too
+        }
+
     }
 }
