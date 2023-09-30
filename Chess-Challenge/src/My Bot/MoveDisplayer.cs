@@ -2,11 +2,15 @@ using ChessChallenge.API;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using ChessMove = ChessChallenge.Chess.Move;
 
 
 class MoveDisplayer
 {
     private Dictionary<int,List<Move>> movesByScore;
+    private static FieldInfo moveField = (FieldInfo) typeof(Move).GetField("move", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
     public MoveDisplayer()
     {
         movesByScore = new Dictionary<int,List<Move>>();
@@ -29,7 +33,8 @@ class MoveDisplayer
 
     public static string MoveName(Move move)
     {
-        return move.ToString().Substring(7,4);
+        ChessMove internalMove = (ChessMove) MoveDisplayer.moveField.GetValue(move)!;
+        return ChessChallenge.Chess.MoveUtility.GetMoveNameUCI(internalMove);
     }
 
     public void Print()
