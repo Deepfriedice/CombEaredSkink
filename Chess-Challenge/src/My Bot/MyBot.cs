@@ -10,6 +10,7 @@ public class MyBot : IChessBot
     private const int TimeThreshold = 16;  // how aggressively to increase the search depth
     private const double InitialSearchScale = 1.8;  // coefficient for initial searchDepth value
     private int searchDepth = 0;
+    private MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
     internal int evalCount = 0;  //#DEBUG
     internal int cacheHits = 0;  //#DEBUG
     internal int cacheMisses = 0;  //#DEBUG
@@ -135,24 +136,12 @@ public class MyBot : IChessBot
         return moves[rng.Next(moves.Count)];
     }
 
-    public Move Think(Board board, Timer timer)
+    internal List<Move> FindBestMoves(Board board, int depth)
     {
-        int thinkingTimeGoal = ThinkingTimeGoal(timer);
-        evalCount = 0;  //#DEBUG
-        cacheHits = 0;  //#DEBUG
-        cacheMisses = 0;  //#DEBUG
-
-        // set initial search depth based on the game length
-        if (searchDepth == 0)
-            searchDepth = (int) (InitialSearchScale * Math.Log(timer.GameStartTimeMilliseconds, TimeThreshold));
-
-        bool wasInCheck = board.IsInCheck();
-        Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
-
+        displayer.Clear();  //#DEBUG
         int bestScore = -MaxScore;
-        MoveDisplayer displayer = new MoveDisplayer();  //#DEBUG
         List<Move> bestMoves = new List<Move>();
-        foreach (Move move in SortedMoves(board, searchDepth))
+        foreach (Move move in SortedMoves(board, depth))
         {
             board.MakeMove(move);
 
@@ -160,11 +149,14 @@ public class MyBot : IChessBot
             if (board.IsInCheckmate())
             {
                 Console.WriteLine("found checkmate: {0}", MoveDisplayer.MoveName(move));  //#DEBUG
-                return move;  // don't need to undo the move
+                bestMoves.Clear();
+                bestMoves.Add(move);
+                return bestMoves;
+                // don't need to undo the move
             }
 
             // evaluate the position after this move
-            int moveScore = -RecursiveBoardScore(board, searchDepth-1, -MaxScore, -bestScore);
+            int moveScore = -RecursiveBoardScore(board, depth-1, -MaxScore, -bestScore);
 
             if (moveScore != -MaxScore)  //#DEBUG
                 displayer.Add(move, moveScore);  //#DEBUG
@@ -185,6 +177,27 @@ public class MyBot : IChessBot
         }
 
         displayer.Print();  //#DEBUG
+        return bestMoves;
+    }
+
+    public Move Think(Board board, Timer timer)
+    {
+        int thinkingTimeGoal = ThinkingTimeGoal(timer);
+        evalCount = 0;  //#DEBUG
+        cacheHits = 0;  //#DEBUG
+        cacheMisses = 0;  //#DEBUG
+
+        Console.WriteLine("FEN: {0}", board.GetFenString());  //#DEBUG
+
+        // set initial search depth based on the game length
+        if (searchDepth == 0)
+            searchDepth = (int) (InitialSearchScale * Math.Log(timer.GameStartTimeMilliseconds, TimeThreshold));
+
+        bool wasInCheck = board.IsInCheck();
+
+        Console.WriteLine("search depth {0}", searchDepth);  //#DEBUG
+        List<Move> bestMoves = FindBestMoves(board, searchDepth);
+
         Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
         Console.WriteLine("cached positions hits: {0:D}k", cacheHits/1000);  //#DEBUG
         Console.WriteLine("thinking time: {0:D}/{1:D}ms", timer.MillisecondsElapsedThisTurn, thinkingTimeGoal);  //#DEBUG
@@ -201,9 +214,11 @@ public class MyBot : IChessBot
                 Console.WriteLine("increasing search depth");  //#DEBUG
             }
         }
-        Console.WriteLine();  //#DEBUG
 
         // play a random move from the best moves
-        return RandomMove(bestMoves);
+        Move choice = RandomMove(bestMoves);
+        Console.WriteLine("picked: {0}", MoveDisplayer.MoveName(choice));  //#DEBUG
+        Console.WriteLine();  //#DEBUG
+        return choice;
     }
 }
