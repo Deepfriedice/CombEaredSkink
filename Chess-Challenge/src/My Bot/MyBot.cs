@@ -7,7 +7,7 @@ public class MyBot : IChessBot
 {
     private readonly Random rng = new();
     private const int MaxScore = 1000;
-    private const int TimeConsumption = 12;  // faction of the clock to use each turn
+    private const int TimeConsumption = 12;  // fraction of the clock to use each turn
     private const int TimeThreshold = 16;  // how aggressively to increase the search depth
     private const double InitialSearchScale = 1.8;  // coefficient for initial searchDepth value
     private int searchDepth = 0;
@@ -24,8 +24,6 @@ public class MyBot : IChessBot
         public int score;
     }
     internal CacheItem[] evalCache = new CacheItem[1<<22];
-
-
 
     // How long do we have to think about our move?
     private int ThinkingTimeGoal(Timer timer)
@@ -50,6 +48,7 @@ public class MyBot : IChessBot
         // note that board.IsInCheck is forced to false
     }
 
+    // Wrapper around BoardScore which uses the evaluation table.
     private int CachedBoardScore(Board board)
     {
         ulong key = board.ZobristKey % (ulong) evalCache.Length;
@@ -82,7 +81,8 @@ public class MyBot : IChessBot
         return moves;
     }
 
-    internal int RecursiveBoardScore(Board board, int depth, int lowerBound, int upperBound)
+    // Use alpha-beta search to determine a score for a position.
+    internal int Search(Board board, int depth, int lowerBound, int upperBound)
     {
         // avoid checkmate and draws
         if (board.IsInCheckmate())
@@ -108,7 +108,7 @@ public class MyBot : IChessBot
 
             // search recursively
             // the quality of the move to us is how bad it makes the opponent's position
-            int moveScore = -RecursiveBoardScore(board, depth-1, -upperBound,  -Math.Max(bestScore, lowerBound));
+            int moveScore = -Search(board, depth-1, -upperBound,  -Math.Max(bestScore, lowerBound));
             board.UndoMove(move);
 
             // beta cut off
@@ -131,6 +131,7 @@ public class MyBot : IChessBot
         return moves[rng.Next(moves.Count)];
     }
 
+    // Top-level search function, returns a list of best moves.
     internal List<Move> FindBestMoves(Board board, int depth)
     {
         displayer.Clear();  //#DEBUG
@@ -151,7 +152,7 @@ public class MyBot : IChessBot
             }
 
             // evaluate the position after this move
-            int moveScore = -RecursiveBoardScore(board, depth-1, -MaxScore, -bestScore);
+            int moveScore = -Search(board, depth-1, -MaxScore, -bestScore);
 
             if (moveScore != -MaxScore)  //#DEBUG
                 displayer.Add(move, moveScore);  //#DEBUG
@@ -175,14 +176,13 @@ public class MyBot : IChessBot
         return bestMoves;
     }
 
+    // Entry point for a Chess Challenge bot.
     public Move Think(Board board, Timer timer)
     {
         int thinkingTimeGoal = ThinkingTimeGoal(timer);
         evalCount = 0;  //#DEBUG
         cacheHits = 0;  //#DEBUG
         cacheMisses = 0;  //#DEBUG
-
-        Console.WriteLine("FEN: {0}", board.GetFenString());  //#DEBUG
 
         // set initial search depth based on the game length
         if (searchDepth == 0)
