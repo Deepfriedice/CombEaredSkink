@@ -194,7 +194,7 @@ public class MyBot : IChessBot
         List<Move> bestMoves = FindBestMoves(board, searchDepth);
 
         Console.WriteLine("evaluated positions: {0:D}k", evalCount/1000);  //#DEBUG
-        Console.WriteLine("cached positions hits: {0:D}k", cacheHits/1000);  //#DEBUG
+        Console.WriteLine("evaluation cache hits: {0:D}k", cacheHits/1000);  //#DEBUG
         Console.WriteLine("thinking time: {0:D}/{1:D}ms", timer.MillisecondsElapsedThisTurn, thinkingTimeGoal);  //#DEBUG
         if (!wasInCheck)  // don't update the search depth in special cases
         {
